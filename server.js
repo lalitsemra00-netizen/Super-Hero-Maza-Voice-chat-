@@ -21,44 +21,63 @@ if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD || !process.env.S
   process.exit(1);
 }
 if (process.env.NODE_ENV === "production" && process.env.SESSION_SECRET.length < 32) {
-  console.error("SESSION_SECRET must be at least 32 characters in production.");
-  process.exit(1);
-}
+  
+const db = new Database(
+  path.join(DATA_DIR, "agency.sqlite")
+);
 
-`const sqlite3= require('sqlite3').verbose();
-`const db= new sqlite3.Database(path.join(DATA_DIR,"agency.sqlite"
-`db.run("PRAGMA journal|\_mode=WAL;");
-CREATE TABLE IF NOT EXISTS admins (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL
-);
-CREATE TABLE IF NOT EXISTS media (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  title TEXT NOT NULL,
-  filename TEXT NOT NULL,
-  original_name TEXT NOT NULL,
-  mime_type TEXT NOT NULL,
-  media_type TEXT NOT NULL CHECK(media_type IN ('image','video')),
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-CREATE TABLE IF NOT EXISTS sellers (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
-  city TEXT NOT NULL,
-  contact TEXT NOT NULL DEFAULT '',
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-CREATE TABLE IF NOT EXISTS offers (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  plan TEXT UNIQUE NOT NULL,
-  price TEXT NOT NULL,
-  value TEXT NOT NULL,
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
+db.pragma("journal_mode = WAL");
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS admins (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS media (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    filename TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    mime_type TEXT NOT NULL,
+    media_type TEXT NOT NULL
+      CHECK(media_type IN ('image','video')),
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS sellers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    city TEXT NOT NULL,
+    contact TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS offers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    plan TEXT UNIQUE NOT NULL,
+    price TEXT NOT NULL,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
-const insertOffer = db.prepare("INSERT OR IGNORE INTO offers (plan, price, value) VALUES (?, ?, ?)");
+
+const insertOffer = db.prepare(
+  "INSERT OR IGNORE INTO offers (plan, price, value) VALUES (?, ?, ?)"
+);
+
 [
+  ["SVIP-1", "1975", "3 lakh"],
+  ["SVIP-2", "6700", "11 lakh"],
+  ["SVIP-3", "14500", "25 lakh"],
+  ["SVIP-4", "29000", "50 lakh"],
+  ["SVIP-5", "57000", "1 crore"],
+  ["SVIP-6", "142500", "2.5 crore"],
+  ["SVIP-7", "285000", "5 crore"],
+  ["SVIP-8", "570000", "10 crore"]
+].forEach(offer => insertOffer.run(...offer))
+  
  ["SVIP-1","1975","3 lakh"],["SVIP-2","6700","11 lakh"],["SVIP-3","14500","25 lakh"],
  ["SVIP-4","29000","50 lakh"],["SVIP-5","57000","1 crore"],["SVIP-6","142500","2.5 crore"],
  ["SVIP-7","285000","5 crore"],["SVIP-8","570000","10 crore"]
