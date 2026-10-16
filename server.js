@@ -237,5 +237,9 @@ app.get("*", (req, res, next) => {
   const passwordHash = await bcrypt.hash(password, 12);
   if (existing) db.prepare("UPDATE admins SET password_hash=? WHERE id=?").run(passwordHash, existing.id);
   else db.prepare("INSERT INTO admins (username,password_hash) VALUES (?,?)").run(username, passwordHash);
-  app.listen(PORT, () => console.log(`Super Hero Maza Voice Chat running on port ${PORT}`));
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
 })().catch(err => { console.error(err); process.exit(1); });
