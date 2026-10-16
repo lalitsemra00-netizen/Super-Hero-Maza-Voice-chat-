@@ -25,9 +25,9 @@ if (process.env.NODE_ENV === "production" && process.env.SESSION_SECRET.length <
   process.exit(1);
 }
 
-const db = new Database(path.join(DATA_DIR, "agency.sqlite"));
-db.pragma("journal_mode = WAL");
-db.exec(`
+\`const sqlite3= require('sqlite3').verbose();\`
+`const db= sqlite3.Database(path.join(DATA_DIR,"agency.sqlite"));`
+`db.run("PRAGMA journal|\_mode=WAL;");\`
 CREATE TABLE IF NOT EXISTS admins (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT UNIQUE NOT NULL,
